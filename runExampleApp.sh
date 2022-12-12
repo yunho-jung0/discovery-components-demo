@@ -91,17 +91,6 @@ if [ "$USE_FORMAT" == "true" ]; then tput clear; fi
 #
 checkForDependencies
 
-#
-# install dependencies
-#
-paddedMessage "Installing project dependencies..."
-yarn --silent
-colorMessage "done" 2
-
-#
-# collection discovery instance information
-#
-
 updateEnvFile
 
 #
