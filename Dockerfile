@@ -1,4 +1,5 @@
 FROM node:16
+RUN chmod -R 777 .
 COPY ./ /deploy
 WORKDIR /deploy
 RUN chmod -R 777 .
