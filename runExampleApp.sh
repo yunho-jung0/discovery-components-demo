@@ -11,8 +11,6 @@ USE_FORMAT=$(
   type tput >/dev/null 2>&1
   if [ $? -eq 0 ]; then echo "true"; else echo "false"; fi
 )
-CREDENTIALS_FILE="${SCRIPT_DIR}/examples/discovery-search-app/ibm-credentials.env"
-ENV_LOCAL_FILE="${SCRIPT_DIR}/examples/discovery-search-app/.env.local"
 
 function boldMessage() {
   if [ "$USE_FORMAT" == "true" ]; then
@@ -67,21 +65,17 @@ function checkForDependencies() {
 
 function updateEnvFile() {
 
-cat >"$CREDENTIALS_FILE" <<EOL
 DISCOVERY_AUTH_TYPE=iam
 DISCOVERY_URL=${discovery_api_url}
 DISCOVERY_APIKEY=${discovery_api_key}
-EOL
   
-
-cat >"$ENV_LOCAL_FILE" <<EOL
 REACT_APP_PROJECT_ID=${discovery_projectId}
-EOL
 
-  if [ $OSTYPE == 'msys' ]; then
-    echo "SASS_PATH=\"../../node_modules;src\"" >>"$ENV_LOCAL_FILE"
-  fi
-  echo
+export DISCOVERY_AUTH_TYPE=iam
+export DISCOVERY_URL=${discovery_api_url}
+export DISCOVERY_APIKEY=${discovery_api_key}
+export REACT_APP_PROJECT_ID=${discovery_projectId}
+
 }
 
 if [ "$USE_FORMAT" == "true" ]; then tput clear; fi
@@ -117,5 +111,6 @@ colorMessage "done" 2
 
 
 yarn workspace discovery-search-app run start
+
 
 
