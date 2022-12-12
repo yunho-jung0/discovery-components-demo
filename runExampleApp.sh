@@ -66,83 +66,16 @@ function checkForDependencies() {
 }
 
 function updateEnvFile() {
-  local authType
-  local url
-  local projectId
-  local username
-  local password
-  local apikey
-  local authTypeValid=false
 
-  paddedMessage "What kind of authentication are you using?"
-  echo "iam (Cloud)"
-  echo "cp4d (CP4D)"
-  echo
-
-  while ! $authTypeValid; do
-    read -p "  authType: " authType
-    if [[ "$authType" == "iam" || "$authType" == "cp4d" ]]; then
-      authTypeValid=true
-    else
-      paddedMessage "Please provide a valid value (iam/cp4d)"
-    fi
-  done
-
-  if [[ "$authType" == "cp4d" ]]; then
-    paddedMessage "CP4D:"
-    echo "  Provide the base URL (and port, if necessary) for your CP4D deployment. Example:"
-    colorMessage "  https://zen-25-cpd-zen-25.apps.my-cluster-name.com" 3
-    echo
-    while [[ "$url" == "" ]]; do
-      read -p "  url: " url
-    done
-    echo "  Provide the credentials used to log into the CP4D dashboard."
-    while [[ "$username" == "" ]]; do
-      read -p "  username: " username
-    done
-
-    while [[ "$password" == "" ]]; do
-      read -s -p "  password: " password
-    done
-
-    cat >"$CREDENTIALS_FILE" <<EOL
-DISCOVERY_AUTH_TYPE=${authType}
-DISCOVERY_AUTH_URL="${url}/icp4d-api"
-DISCOVERY_AUTH_DISABLE_SSL=true
-DISCOVERY_USERNAME=${username}
-DISCOVERY_PASSWORD=${password}
-DISCOVERY_DISABLE_SSL=true
+cat >"$CREDENTIALS_FILE" <<EOL
+DISCOVERY_AUTH_TYPE=iam
+DISCOVERY_URL=${discovery_api_url}
+DISCOVERY_APIKEY=${discovery_api_key}
 EOL
-  elif [[ "$authType" == "iam" ]]; then
-    paddedMessage "Cloud:"
-    echo "  Provide the API URL and key for your Cloud instance. Example URL:"
-    colorMessage "  https://api.us-south.discovery.cloud.ibm.com/instances/1234" 3
-    echo
-    while [[ "$url" == "" ]]; do
-      read -p "  url: " url
-    done
-    while [[ "$apikey" == "" ]]; do
-      read -s -p "  apikey: " apikey
-    done
-    cat >"$CREDENTIALS_FILE" <<EOL
-DISCOVERY_AUTH_TYPE=${authType}
-DISCOVERY_URL=${url}
-DISCOVERY_APIKEY=${apikey}
-EOL
-  else
-    echo "Unsupported authentication type: ${authType}"
-    exit 1
-  fi
+  
 
-  paddedMessage "Project ID:"
-  echo "  Copy one of available project IDs:"
-  node "${SCRIPT_DIR}/examples/discovery-search-app/scripts/listProjects.js"
-  while [[ "$projectId" == "" ]]; do
-    read -p "  project_id: " projectId
-  done
-
-  cat >"$ENV_LOCAL_FILE" <<EOL
-REACT_APP_PROJECT_ID=${projectId}
+cat >"$ENV_LOCAL_FILE" <<EOL
+REACT_APP_PROJECT_ID=${discovery_projectId}
 EOL
 
   if [ $OSTYPE == 'msys' ]; then
@@ -168,17 +101,8 @@ colorMessage "done" 2
 #
 # collection discovery instance information
 #
-if [ -f "$CREDENTIALS_FILE" ]; then
-  paddedMessage "File already exists:"
-  colorMessage "  $CREDENTIALS_FILE" 3
-  read -p "$(paddedMessage 'Update file before configuring server (y/n)? ')" updateEnvValues
 
-  if [[ "${updateEnvValues}" =~ ^(Y|y)$ ]]; then
-    updateEnvFile
-  fi
-else
-  updateEnvFile
-fi
+updateEnvFile
 
 #
 # run server setup script
@@ -202,7 +126,7 @@ if [ $? -ne 0 ]; then
 fi
 colorMessage "done" 2
 
-read -p "$(paddedMessage 'Start the example app now (y/n)? ')" startServer
-if [[ "${startServer}" =~ ^(Y|y)$ ]]; then
-  yarn workspace discovery-search-app run start
-fi
+
+yarn workspace discovery-search-app run start
+
+
